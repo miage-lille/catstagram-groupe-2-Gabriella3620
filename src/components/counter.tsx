@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { counterSelector } from '../reducer';
+import { useDispatch, useSelector } from 'react-redux';
 import { decrement, increment } from '../actions';
 
 const Container = styled.div`
@@ -40,7 +40,7 @@ const Counter = () => {
   const dispatch = useDispatch();
   return (
     <Container>
-      <Button onClick={() => dispatch(decrement())}> - </Button>
+      <Button disabled={counter<=3} onClick={() => dispatch(decrement())}> - </Button>
       <DisplayCounter>{counter}</DisplayCounter>
       <Button onClick={() => dispatch(increment())}> + </Button>
     </Container>
