@@ -1,3 +1,8 @@
-export type Success = unknown; // TODO : Update this type !
-export type Loading = unknown; // TODO : Update this type !
-export type Failure = unknown; // TODO : Update this type !
+import { Picture } from "./picture.type";
+
+export type Loading = { type: 'Loading' };
+export type Success = { type: 'Success', pictures: Picture[] };
+export type Failure = { type: 'Failure', error: string };
+
+export type ApiStatus = 
+| Loading | Success | Failure;

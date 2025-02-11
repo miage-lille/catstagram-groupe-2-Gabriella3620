@@ -1,39 +1,77 @@
-import { Loop, liftState } from 'redux-loop';
+import { Loop, liftState, loop } from 'redux-loop';
 import { compose } from 'redux';
-import { Actions } from './types/actions.type';
+import { Actions, Increment, Decrement } from './types/actions.type';
+import { increment } from 'fp-ts/lib/function';
+import { Picture } from './types/picture.type';
+import fakeData from './fake-datas.json';
+import { cons } from 'fp-ts/lib/ReadonlyNonEmptyArray';
+import * as O from 'fp-ts/Option'
+import { cmdFetch } from './commands';
+import { fetchCatsRequest } from './actions';
 
-export type State = unknown; // TODO : Update this type !
+import { loading, success, failure } from './api';
+import { ApiStatus } from './types/api.type';
+ 
 
-export const defaultState = {}; // TODO : Update this value !
+export type State = {
+  counter: number,
+  pictures: ApiStatus,
+  selectedPicture: O.Option<Picture>
+}
+
+export const defaultState: State = {
+  counter: 0,
+  pictures: loading(),
+  selectedPicture: O.none
+}
+
 
 export const reducer = (state: State | undefined, action: Actions): State | Loop<State> => {
   if (!state) return defaultState; // mandatory by redux
   switch (action.type) {
     case 'INCREMENT':
-      throw 'Not Implemented';
+      const incrementedCounter = state.counter + 1;
+      return loop(
+        { ...state, counter: incrementedCounter, pictures: loading() },
+        cmdFetch(fetchCatsRequest(incrementedCounter))
+      );
+
     case 'DECREMENT':
-      throw 'Not Implemented';
-    case 'SELECT_PICTURE':
-      throw 'Not Implemented';
-    case 'CLOSE_MODAL':
-      throw 'Not Implemented';
-    case 'FETCH_CATS_REQUEST':
-      throw 'Not Implemented';
+      if (state.counter > 3) {
+        const decrementedCounter = state.counter - 1;
+        return loop(
+          { ...state, counter: decrementedCounter, pictures: loading() },
+          cmdFetch(fetchCatsRequest(decrementedCounter))
+        );
+      }
+      throw 'Operation not allowed';
+
     case 'FETCH_CATS_COMMIT':
-      throw 'Not Implemented';
+      return { ...state, pictures: success(action.payload) };
+
     case 'FETCH_CATS_ROLLBACK':
-      throw 'Not Implemented';
+      console.error(action.error);
+      return { ...state, pictures: failure(action.error.message) };
+
+    case 'SELECT_PICTURE':
+      return { ...state, selectedPicture: O.some(action.picture) };
+
+    case 'CLOSE_MODAL':
+      return { ...state, selectedPicture: O.none };
+
+    default:
+      return state;
   }
 };
 
 export const counterSelector = (state: State) => {
-  throw 'Not Implemented';
+  return state.counter;
 };
 export const picturesSelector = (state: State) => {
-  throw 'Not Implemented';
+  return state.pictures;
 };
 export const getSelectedPicture = (state: State) => {
-  throw 'Not Implemented';
+  return state.selectedPicture;
 };
 
 export default compose(liftState, reducer);
